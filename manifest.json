@@ -1,0 +1,87 @@
+{
+   "action": {
+      "default_popup": "panel.html",
+      "default_title": "Pixora"
+   },
+   "background": {
+      "service_worker": "js/core.js"
+   },
+   "content_scripts": [
+      {
+         "all_frames": true,
+         "js": [
+            "js/bridge.js"
+         ],
+         "matches": [
+            "*://*.tiktok.com/*"
+         ],
+         "run_at": "document_start"
+      },
+      {
+         "all_frames": true,
+         "js": [
+            "js/video-watcher.js",
+            "js/page-panel.js",
+            "js/profile-spy.js"
+         ],
+         "matches": [
+            "*://*.tiktok.com/*"
+         ],
+         "run_at": "document_idle"
+      }
+   ],
+   "description": "Enhance your TikTok uploads with HD quality and smooth playback. By Pixora.",
+   "host_permissions": [
+      "https://*.tiktok.com/*",
+      "https://*.tiktokv.com/*",
+      "https://*.tiktokcdn.com/*",
+      "https://*.tikwm.com/*",
+      "https://movecexnjyeaipkklijv.supabase.co/*",
+      "https://unpkg.com/*"
+   ],
+   "icons": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+   },
+   "manifest_version": 3,
+   "content_security_policy": {
+      "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none';"
+   },
+   "name": "Pixora",
+   "permissions": [
+      "scripting",
+      "activeTab",
+      "storage",
+      "tabs",
+      "downloads",
+      "webRequest",
+      "cookies",
+      "offscreen",
+      "alarms"
+   ],
+   "version": "2.4.2",
+   "web_accessible_resources": [
+      {
+         "matches": [
+            "<all_urls>"
+         ],
+         "resources": [
+            "js/inject.js",
+            "js/engine.js",
+            "assets/ffmpeg/ffmpeg-core.js",
+            "assets/ffmpeg/ffmpeg-core.wasm",
+            "assets/ffmpeg/ffmpeg-core.worker.js",
+            "assets/ffmpeg/814.ffmpeg.js",
+            "panel.html",
+            "js/panel.js",
+            "js/ffmpeg.js",
+            "assets/ffmpeg/ffmpeg-wasm.js",
+            "assets/ffmpeg/ffmpeg-util.js",
+            "icons/icon16.png",
+            "icons/icon48.png",
+            "icons/icon128.png"
+         ]
+      }
+   ]
+}
