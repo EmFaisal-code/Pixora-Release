@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pixora</title>
+    <style>
+        /* ── COLOR THEMES ── */
+        :root{--accent:#6366f1;--accent2:#8b5cf6;}
+        body.theme-purple{--accent:#6366f1;--accent2:#8b5cf6;}
+        body.theme-red{--accent:#ef4444;--accent2:#dc2626;}
+        body.theme-blue{--accent:#3b82f6;--accent2:#2563eb;}
+        body.theme-green{--accent:#22c55e;--accent2:#16a34a;}
+        body.theme-pink{--accent:#ec4899;--accent2:#db2777;}
+        body.theme-orange{--accent:#f97316;--accent2:#ea580c;}
+        body.theme-cyan{--accent:#06b6d4;--accent2:#0891b2;}
+        /* ── BASE ── */
+        body{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:#2a2a3a;--green:#22c55e;--red:#ef4444;--text:#f0f0ff;--muted:#6b6b8a;--radius:16px;}
+        body.light{--bg:#f8f8ff;--surface:#ffffff;--surface2:#f0f0f8;--border:#e0e0f0;--text:#0a0a1a;--muted:#8888aa;}
+
+        *{box-sizing:border-box;margin:0;padding:0;} ::-webkit-scrollbar{display:none;}
+        body{width:450px;height:650px;padding-bottom:40px;background:var(--bg);color:var(--text);font-family:'Inter','Segoe UI',sans-serif;overflow-x:hidden;overflow-y:auto;transition:background .3s,color .3s;}
+        .hidden{display:none!important;}
+        .view{display:none;flex-direction:column;} .view.active{display:flex;}
+        /* AUTH */
+        #authView{padding:28px 20px;align-items:center;}
+        .brand-mark{display:flex;flex-direction:column;align-items:center;margin-bottom:24px;}
+        .brand-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+        .brand-icon svg{width:22px;fill:#fff;}
+        .brand-name{font-weight:800;font-size:22px;letter-spacing:-.5px;} .brand-name span{color:var(--accent);}
+        .brand-tag{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:1px;}
+        .auth-box{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+        .auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:18px;}
+        .auth-tab{flex:1;padding:7px;border-radius:8px;text-align:center;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;}
+        .auth-tab.active{background:var(--surface);color:var(--text);}
+        .field{margin-bottom:12px;}
+        .field label{display:block;font-size:10px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+        .field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s;}
+        .field input:focus{border-color:var(--accent);} .field input.err{border-color:var(--red);}
+        .connect-btn{width:100%;padding:10px;border:1px dashed rgba(99,102,241,.4);border-radius:10px;background:rgba(99,102,241,.06);color:var(--accent);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;margin-bottom:12px;}
+        .connect-btn svg{width:15px;fill:currentColor;} .connect-btn:hover{border-color:var(--accent);background:rgba(99,102,241,.12);}
+        .connect-btn.connected{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.08);}
+        .pw-warning{font-size:10px;color:#f59e0b;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:7px 10px;line-height:1.5;margin-bottom:4px;}
+        .btn-primary{width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer;font-weight:700;font-size:13px;transition:opacity .2s;}
+        .btn-primary:hover{opacity:.9;} .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+        .auth-msg{font-size:11px;text-align:center;margin-top:10px;min-height:16px;}
+        .auth-msg.err{color:var(--red);} .auth-msg.ok{color:var(--green);}
+        /* TOPBAR */
+        .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;}
+        .brand{display:flex;align-items:center;gap:8px;}
+        .brand-icon-sm{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;}
+        .brand-icon-sm svg{width:13px;fill:#fff;}
+        .brand-name-sm{font-weight:800;font-size:15px;letter-spacing:-.3px;} .brand-name-sm span{color:var(--accent);}
+        .topbar-right{display:flex;gap:4px;align-items:center;}
+        .tb-btn{height:28px;min-width:28px;border-radius:8px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .2s;font-size:10px;font-weight:700;padding:0 6px;}
+        .tb-btn svg{width:13px;fill:currentColor;} .tb-btn:hover{border-color:var(--accent);color:var(--accent);}
+        .tb-btn.danger:hover{border-color:var(--red);color:var(--red);}
+        .user-chip{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 8px 3px 3px;}
+        .user-avatar{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;}
+        .user-name{font-size:10px;font-weight:600;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* COLOR PICKER */
+        .color-picker{display:none;position:absolute;right:16px;top:52px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+        .color-picker.open{display:block;}
+        .color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+        .color-swatch{width:28px;height:28px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .2s;}
+        .color-swatch:hover,.color-swatch.active{border-color:#fff;transform:scale(1.1);}
+        /* NAV TABS */
+        .nav-tabs{display:flex;margin:0 16px 12px;background:var(--surface2);border-radius:10px;padding:3px;}
+        .nav-tab{flex:1;padding:7px;border-radius:8px;text-align:center;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;}
+        .nav-tab.active{background:var(--surface);color:var(--text);}
+        /* BOOST */
+        .boost-card{margin:0 16px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:center;gap:12px;transition:border-color .3s,box-shadow .3s;position:relative;overflow:hidden;}
+        .boost-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(34,197,94,.06),transparent);opacity:0;transition:opacity .3s;}
+        .boost-card.on{border-color:rgba(34,197,94,.5);box-shadow:0 0 20px rgba(34,197,94,.1);} .boost-card.on::before{opacity:1;}
+        .boost-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);transition:all .3s;flex-shrink:0;}
+        .boost-card.on .boost-dot{background:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.2);animation:pulseDot 2s infinite;}
+        @keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+        .boost-info{flex:1;} .boost-title{font-weight:700;font-size:12px;} .boost-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+        .boost-card.on .boost-sub{color:var(--green);}
+        .boost-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);transition:all .3s;white-space:nowrap;}
+        .boost-card.on .boost-badge{background:rgba(34,197,94,.15);color:var(--green);border-color:rgba(34,197,94,.3);}
+        /* DISABLED */
+        .feature-disabled{position:relative;pointer-events:none;opacity:.4;}
+        .feature-disabled::after{content:var(--disabled-text,'Feature disabled');position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--red);background:rgba(10,10,15,.75);border-radius:var(--radius);pointer-events:none;}
+        /* CAPTCHA BANNER */
+        .captcha-banner{margin:0 16px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;animation:pulseRedBanner 2s infinite;}
+        .captcha-banner.hidden{display:none;}
+        .captcha-icon-sm{width:32px;height:32px;background:rgba(239,68,68,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .captcha-icon-sm svg{width:16px;fill:var(--red);}
+        .captcha-banner-info{flex:1;}
+        .captcha-banner-title{font-size:12px;font-weight:800;color:var(--red);margin-bottom:2px;}
+        .captcha-banner-desc{font-size:9px;color:var(--text);line-height:1.3;opacity:0.9;}
+        @keyframes pulseRedBanner{0%{box-shadow:0 0 0 0 rgba(239,68,68,0.2)}70%{box-shadow:0 0 0 10px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+
+        /* FEATURE LOCKED */
+        .feature-locked{opacity:0.4;pointer-events:none;filter:grayscale(0.8);}
+
+        /* ANNOUNCEMENT BANNER */
+        .announcement-banner{margin:0 16px 12px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.35);border-radius:12px;padding:10px 12px;display:flex;align-items:flex-start;gap:10px;animation:pulseAnnounceBanner 3s infinite;}
+        .announcement-banner.hidden{display:none;}
+        .announcement-icon{width:28px;height:28px;background:rgba(99,102,241,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+        .announcement-icon svg{width:14px;fill:#818cf8;}
+        .announcement-info{flex:1;}
+        .announcement-title{font-size:10px;font-weight:800;color:#818cf8;margin-bottom:2px;letter-spacing:.5px;}
+        .announcement-desc{font-size:10px;color:var(--text);line-height:1.4;opacity:0.85;}
+        .announcement-close{width:18px;height:18px;cursor:pointer;opacity:0.5;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:opacity .2s;}
+        .announcement-close:hover{opacity:1;}
+        .announcement-close svg{width:12px;fill:var(--text);}
+        @keyframes pulseAnnounceBanner{0%{box-shadow:0 0 0 0 rgba(99,102,241,0.2)}70%{box-shadow:0 0 0 8px rgba(99,102,241,0)}100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}}
+
+        /* OPTIONAL UPDATE MODAL */
+        .opt-update-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
+        .opt-update-backdrop.hidden{display:none;}
+        .opt-update-modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px 20px;width:100%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+        .opt-update-icon{width:52px;height:52px;border-radius:50%;background:rgba(99,102,241,0.15);border:2px solid rgba(99,102,241,0.4);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+        .opt-update-icon svg{width:24px;fill:#818cf8;}
+        .opt-update-tag{display:inline-block;background:rgba(99,102,241,0.15);color:#818cf8;font-size:9px;font-weight:700;letter-spacing:.8px;padding:3px 10px;border-radius:20px;border:1px solid rgba(99,102,241,0.3);margin-bottom:10px;}
+        .opt-update-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px;}
+        .opt-update-version{font-size:10px;color:var(--muted);margin-bottom:14px;}
+        .opt-update-changelog{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:left;margin-bottom:16px;max-height:130px;overflow-y:auto;}
+        .opt-update-changelog p{font-size:11px;color:var(--text);line-height:1.6;margin:0;white-space:pre-line;}
+        .opt-update-actions{display:flex;gap:8px;}
+        .opt-update-later{flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+        .opt-update-later:hover{color:var(--text);border-color:var(--accent);}
+        .opt-update-now{flex:2;padding:9px;background:linear-gradient(135deg,var(--accent),#7c3aed);border:none;border-radius:10px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;transition:all .2s;}
+        .opt-update-now:hover{opacity:0.9;transform:translateY(-1px);}
+
+        /* PREPARE */
+        .prep-card{margin:0 16px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+        .prep-header{padding:12px 14px 0;display:flex;align-items:center;gap:10px;}
+        .prep-header-icon{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.15));border:1px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .prep-header-icon svg{width:16px;fill:var(--accent);}
+        .prep-title{font-weight:700;font-size:13px;} .prep-subtitle{font-size:10px;color:var(--muted);margin-top:1px;}
+        .mode-btn{padding:8px 10px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:all .2s;text-align:center;}
+        .mode-btn:hover{border-color:var(--accent);}
+        .mode-btn.active{background:rgba(99,102,241,.12);border-color:var(--accent);}
+        .mode-label{font-size:12px;font-weight:700;margin-bottom:2px;}
+        .mode-btn.active .mode-label{color:var(--accent);}
+        .mode-desc{font-size:9px;color:var(--muted);line-height:1.3;}
+        .prep-drop-zone{margin:12px 14px;border:1.5px dashed rgba(99,102,241,.35);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .25s;}
+        .prep-drop-zone:hover,.prep-drop-zone.drag-over{border-color:var(--accent);background:rgba(99,102,241,.05);}
+        .drop-icon{width:36px;height:36px;border-radius:50%;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
+        .drop-icon svg{width:18px;fill:var(--accent);}
+        .drop-text{font-size:12px;font-weight:600;margin-bottom:3px;} .drop-sub{font-size:10px;color:var(--muted);}
+        .drop-sub span{color:var(--accent);font-weight:600;} input#prepFileInput{display:none;}
+        .process-panel{display:none;padding:14px;flex-direction:column;gap:10px;} .process-panel.visible{display:flex;}
+        .process-filename{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:10px 12px;}
+        .file-icon{width:30px;height:30px;border-radius:7px;background:rgba(99,102,241,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .file-icon svg{width:14px;fill:var(--accent);}
+        .file-name{font-size:11px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;} .file-size{font-size:10px;color:var(--muted);}
+        .steps{display:flex;flex-direction:column;gap:5px;}
+        .step{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;background:var(--surface2);transition:all .3s;border:1px solid transparent;}
+        .step.active{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.2);} .step.done{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.2);}
+        .step-icon{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);transition:all .3s;}
+        .step.active .step-icon{background:rgba(99,102,241,.2);border-color:var(--accent);} .step.done .step-icon{background:rgba(34,197,94,.2);border-color:var(--green);}
+        .step-icon svg{width:10px;fill:var(--muted);} .step.active .step-icon svg{fill:var(--accent);} .step.done .step-icon svg{fill:var(--green);}
+        .step-label{font-size:11px;font-weight:600;color:var(--muted);flex:1;} .step.active .step-label{color:var(--text);} .step.done .step-label{color:var(--green);}
+        .step-status{font-size:9px;color:var(--muted);} .step.active .step-status{color:var(--accent);} .step.done .step-status{color:var(--green);}
+        .progress-wrap{background:var(--surface2);border-radius:99px;height:3px;overflow:hidden;}
+        .progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width .4s ease;}
+        .result-box{display:none;padding:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:9px;text-align:center;}
+        .result-box.visible{display:block;} .result-box.err{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);}
+        .result-icon{font-size:20px;margin-bottom:5px;} .result-text{font-size:12px;font-weight:700;color:var(--green);} .result-box.err .result-text{color:var(--red);}
+        .result-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+        .reset-btn{margin-top:8px;padding:6px 14px;border:none;border-radius:7px;background:var(--surface2);color:var(--muted);cursor:pointer;font-size:11px;font-weight:600;transition:all .2s;}
+        .reset-btn:hover{background:var(--surface);color:var(--text);}
+        /* DOWNLOAD */
+        .dl-card{margin:0 16px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+        .dl-input-wrap{display:flex;gap:6px;margin-bottom:12px;}
+        .dl-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:12px;outline:none;transition:border-color .2s;}
+        .dl-input:focus{border-color:var(--accent);} .dl-input::placeholder{color:var(--muted);}
+        .dl-go{width:36px;height:36px;border-radius:9px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+        .dl-go svg{width:16px;fill:#fff;} .dl-go:hover{background:var(--accent2);} .dl-go:disabled{background:var(--surface2);cursor:not-allowed;}
+        .dl-result{display:none;animation:fadeUp .3s ease;} .dl-result.visible{display:block;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        .dl-info{display:flex;gap:10px;margin-bottom:10px;}
+        .dl-thumb{width:56px;height:80px;border-radius:8px;background:var(--surface2);overflow:hidden;flex-shrink:0;}
+        .dl-thumb img{width:100%;height:100%;object-fit:cover;}
+        .dl-meta{flex:1;overflow:hidden;}
+        .dl-author{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+        .dl-desc{font-size:10px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+        .dl-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+        .dl-btn{padding:8px;border:none;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;}
+        .dl-btn svg{width:13px;fill:currentColor;}
+        .dl-btn.video{background:var(--accent);color:#fff;} .dl-btn.video:hover{background:var(--accent2);}
+        .dl-btn.audio{background:var(--surface2);color:var(--muted);border:1px solid var(--border);} .dl-btn.audio:hover{color:var(--text);}
+        .dl-loading{text-align:center;padding:20px;color:var(--muted);font-size:12px;}
+        /* FOOTER */
+        .main-footer{padding:9px 16px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;width:100%;background:var(--bg);z-index:100;}
+        .footer-left{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+        .status-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);}
+        .footer-right{font-size:10px;color:var(--muted);font-weight:600;}
+        /* BANNED */
+        #bannedView{align-items:center;justify-content:center;padding:32px 24px;text-align:center;min-height:300px;}
+        .banned-icon{width:60px;height:60px;border-radius:50%;background:rgba(239,68,68,.15);border:2px solid var(--red);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+        .banned-icon svg{width:28px;fill:var(--red);}
+        .banned-title{font-weight:800;font-size:17px;color:var(--red);margin-bottom:7px;letter-spacing:.5px;}
+        .banned-sub{font-size:12px;color:var(--muted);line-height:1.6;}
+        @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+        .shake{animation:shake .35s ease;}
+        /* LIVE STATS TAB */
+        .live-wrap{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;}
+        .live-status-bar{display:flex;align-items:center;gap:8px;}
+        .live-indicator{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:8px;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid;transition:all .3s;}
+        .live-indicator.active{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:var(--green);}
+        .live-indicator.idle{background:rgba(107,107,138,.08);border-color:rgba(107,107,138,.2);color:var(--muted);}
+        .live-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+        .live-indicator.active .live-dot{animation:pulseDot 2s infinite;}
+        .quality-hero{margin-left:auto;padding:4px 12px;border-radius:8px;background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(139,92,246,.12));border:1px solid rgba(99,102,241,.3);font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.04em;font-family:'Courier New',monospace;}
+        .stat-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+        .stat-item{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--border);}
+        .stat-item:last-child{border-bottom:none;}
+        .stat-lbl{font-size:10.5px;color:var(--muted);font-weight:500;}
+        .stat-val{font-size:11px;font-weight:700;color:var(--text);font-family:'Courier New',monospace;}
+        .state-chip{padding:2px 9px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid;}
+        .state-chip.playing{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:var(--green);}
+        .state-chip.paused{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.25);color:#f59e0b;}
+        .state-chip.loading,.state-chip.buffering{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.25);color:var(--accent);}
+        .state-chip.default{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--muted);}
+        .live-hint{font-size:10px;color:var(--muted);text-align:center;padding:8px 0;opacity:.7;}
+        /* PARALLAX BG - INTERACTIVE DUST (CANVAS) */
+        #dustCanvas{position:fixed;inset:0;z-index:-2;pointer-events:none;}
+        .bg-overlay{position:fixed;inset:0;background:linear-gradient(to bottom, transparent 0%, var(--bg) 100%);z-index:-1;pointer-events:none;}
+        .app-container{position:relative;z-index:1;}
+
+        /* MODERN TOAST NOTIFICATIONS */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .pix-toast {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .pix-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .pix-toast.success .toast-icon { color: var(--green); }
+        .pix-toast.error .toast-icon { color: #ef4444; }
+        .pix-toast.info .toast-icon { color: var(--accent); }
+        /* INLINE MODE OVERRIDES */
+        body.inline-mode {
+            background: transparent !important;
+            border-radius: inherit;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+        }
+        body.inline-mode .app-container {
+            width: 100%;
+            height: 100%;
+            max-height: none;
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border-radius: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        body.inline-mode #dustCanvas,
+        body.inline-mode .bg-overlay {
+            display: none !important;
+        }
+        body.inline-mode .view {
+            position: relative;
+            z-index: 2;
+        }
+        body.inline-mode .view:not(#inlineProgressView) {
+            display: none !important;
+        }
+        body.inline-mode #inlineProgressView {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            max-width: none;
+        }
+        body.inline-mode #inlineProgressView.active {
+            display: flex;
+        }
+        
+        /* Inline Progress View Theme */
+        .inline-card {
+            width: 100%; height: 100%; background: #111219; border-radius: 16px; padding: 20px 24px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 16px 40px rgba(0,0,0,0.6); display: flex; gap: 20px; align-items: center; position: relative;
+        }
+        body.light .inline-card {
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+        }
+        .inline-title { font-weight: 700; font-size: 18px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 480px; letter-spacing: -0.5px; margin-bottom: 4px; }
+        body.light .inline-title { color: #161823; }
+        .inline-meta { font-size: 13px; color: #8e8f9b; font-weight: 500; }
+        body.light .inline-meta { color: #73747b; }
+        .inline-size-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 8px; width: fit-content; margin-top: 12px; }
+        body.light .inline-size-badge { background: rgba(0,0,0,0.03); }
+        .inline-size-text { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+        body.light .inline-size-text { color: #161823; }
+        .inline-progress-track { flex: 1; height: 6px; background: #222331; border-radius: 3px; overflow: hidden; }
+        body.light .inline-progress-track { background: #f1f1f2; }
+        .inline-thumb-container { position: relative; width: 120px; height: 120px; border-radius: 12px; overflow: hidden; background: #1c1e2b; flex-shrink: 0; }
+        body.light .inline-thumb-container { background: #f1f1f2; }
+
+        body.inline-mode .topbar,
+        body.inline-mode .nav-tabs,
+        body.inline-mode .boost-card,
+        body.inline-mode .announcement-banner,
+        body.inline-mode .captcha-banner {
+            display: none !important;
+        }
+        /* ZERNIO MODAL */
+        .zernio-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
+        .zernio-backdrop.hidden{display:none;}
+        .zernio-modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;max-width:420px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden;}
+        .zernio-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+        .zernio-title{font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
+        .zernio-title svg{width:18px;fill:var(--accent);}
+        .zernio-close{cursor:pointer;opacity:0.5;transition:opacity .2s;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;}
+        .zernio-close:hover{opacity:1;background:rgba(255,255,255,0.1);}
+        .zernio-close svg{width:14px;fill:var(--text);}
+        .zernio-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);}
+        .zernio-tab{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
+        .zernio-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+        .zernio-content{padding:20px;max-height:450px;overflow-y:auto;}
+        .zernio-section{display:none;}
+        .zernio-section.active{display:block;}
+        .zernio-section.dragover{background:rgba(99,102,241,.1);border:1px dashed var(--accent);border-radius:12px;padding:20px;margin:-20px;}
+        .zernio-section.dragover *{pointer-events:none;}
+        .zernio-footer{padding:16px 20px;border-top:1px solid var(--border);background:var(--surface2);display:flex;gap:10px;}
+        .zernio-footer .btn-primary{flex:1;}
+    </style>
+</head>
+<body class="theme-purple">
+
+<!-- PARALLAX BG - INTERACTIVE DUST (CANVAS) -->
+<canvas id="dustCanvas"></canvas>
+<div class="bg-overlay"></div>
+
+<div class="app-container">
+    <!-- FFmpeg WASM library (lokal, tidak perlu CDN) -->
+    <!-- Sandbox iframe dihapus: FFmpeg kini berjalan langsung di popup -->
+    <!-- COLOR PICKER DROPDOWN -->
+    <div class="color-picker" id="colorPicker">
+        <div class="color-grid">
+            <div class="color-swatch" data-theme="theme-purple" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);" title="Purple"></div>
+            <div class="color-swatch" data-theme="theme-red" style="background:linear-gradient(135deg,#ef4444,#dc2626);" title="Red"></div>
+            <div class="color-swatch" data-theme="theme-blue" style="background:linear-gradient(135deg,#3b82f6,#2563eb);" title="Blue"></div>
+            <div class="color-swatch" data-theme="theme-green" style="background:linear-gradient(135deg,#22c55e,#16a34a);" title="Green"></div>
+            <div class="color-swatch" data-theme="theme-pink" style="background:linear-gradient(135deg,#ec4899,#db2777);" title="Pink"></div>
+            <div class="color-swatch" data-theme="theme-orange" style="background:linear-gradient(135deg,#f97316,#ea580c);" title="Orange"></div>
+            <div class="color-swatch" data-theme="theme-cyan" style="background:linear-gradient(135deg,#06b6d4,#0891b2);" title="Cyan"></div>
+        </div>
+    </div>
+
+    <!-- INLINE PROGRESS VIEW -->
+    <div id="inlineProgressView" class="view" style="width: 100%; height: 100%; padding: 24px;">
+        <div class="inline-card">
+            
+            <button id="inlineCancelBtn" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: #8e8f9b; cursor: pointer; padding: 4px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(142,143,155,0.1)'" onmouseout="this.style.background='none'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+            </button>
+            
+            <!-- Left: Thumbnail -->
+            <div class="inline-thumb-container">
+                <img id="inlineVidThumb" style="width: 100%; height: 100%; object-fit: cover;" src="" />
+                <div id="inlineVidDuration" style="position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,0.7); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 6px; border-radius: 6px;">00:00</div>
+            </div>
+            
+            <!-- Right: Info -->
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding-right: 24px;">
+                <div id="inlineVidTitle" class="inline-title">video.mp4</div>
+                <div id="inlineVidMeta" class="inline-meta">MP4 &bull; 1080p &bull; 30fps</div>
+                
+                <div class="inline-size-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#8e8f9b"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    <span id="inlineVidSize" class="inline-size-text">0 MB</span>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div style="display: flex; align-items: center; gap: 16px; margin-top: 16px;">
+                    <div class="inline-progress-track">
+                        <div id="inlineProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #9333ea, #c084fc); border-radius: 3px; transition: width 0.3s ease;"></div>
+                    </div>
+                    <div id="inlineProgressPct" style="font-weight: 700; font-size: 18px; color: #c084fc; width: 44px; text-align: right;">0%</div>
+                </div>
+                <div id="inlineProgressStatus" class="inline-meta" style="margin-top: 6px;">Menyiapkan proses...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPDATE VIEW -->
+    <div id="updateView" class="view">
+        <div style="padding:32px 24px;text-align:center;">
+            <div style="width:60px;height:60px;border-radius:50%;background:rgba(245,158,11,.15);border:2px solid #f59e0b;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <svg viewBox="0 0 24 24" style="width:28px;fill:#f59e0b;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            </div>
+            <div id="updateTitle" style="font-weight:800;font-size:17px;color:#f59e0b;margin-bottom:8px;letter-spacing:.5px;">UPDATE REQUIRED</div>
+            <div id="updateMsg" style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px;">Your version is outdated.</div>
+            <a id="updateBtn" href="https://github.com/EmFaisal-code/Pixora/releases/latest" target="_blank"
+               style="display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;">
+                Download Update
+            </a>
+            <div style="margin-top:12px;font-size:10px;color:var(--muted);" id="updateVersionInfo"></div>
+        </div>
+    </div>
+
+    <!-- OPTIONAL UPDATE MODAL -->
+    <div id="optUpdateBackdrop" class="opt-update-backdrop hidden">
+        <div class="opt-update-modal">
+            <div class="opt-update-icon">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </div>
+            <div class="opt-update-tag">NEW UPDATE AVAILABLE</div>
+            <div class="opt-update-title" id="optUpdateTitle">Update Pixora</div>
+            <div class="opt-update-version" id="optUpdateVersion">v2.4.1 → v2.5.0</div>
+            <div class="opt-update-changelog">
+                <p id="optUpdateChangelog">Loading...</p>
+            </div>
+            <div class="opt-update-actions">
+                <button class="opt-update-later" id="optUpdateLaterBtn">Nanti Saja</button>
+                <button class="opt-update-now" id="optUpdateNowBtn">🚀 Update Sekarang</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BANNED VIEW -->
+    <div id="bannedView" class="view">
+        <div class="banned-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg></div>
+        <div class="banned-title" id="bannedTitle">ACCOUNT BANNED</div>
+        <div class="banned-sub" id="bannedSub">Your account has been disabled by admin.<br>Contact <strong>@em.n.ef</strong> for more info.</div>
+    </div>
+
+    <!-- AUTH VIEW -->
+    <div id="authView" class="view active">
+        <div class="brand-mark">
+            <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M13 2.05v2.02c3.95.49 7 3.85 7 7.93 0 3.21-1.81 6-4.72 7.28L13 17v5l7-3.5V14c0-5.12-3.72-9.37-8.63-9.93L13 2.05zM11 2.05C6.09 4.61 3 9.12 3 14v4.5L10 22v-5l-2.28-2.28C5.81 13.6 4 10.81 4 7.6c0-4.08 3.05-7.44 7-7.93V2.05z"/></svg></div>
+            <div class="brand-name">Pix<span>ora</span></div>
+            <div class="brand-tag">TIKTOK UPLOAD BOOSTER</div>
+        </div>
+        <div class="auth-box" style="text-align: center;">
+            <p id="authDesc" style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">
+                Securely connect with your active TikTok session to enter the workspace.
+            </p>
+            <button class="connect-btn" id="connectTikTokBtn" style="margin: 0 auto; display: inline-flex;">
+                <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.82-1.35 4.01-1.29 1.88-3.55 3.07-5.8 2.99-3.12-.11-5.91-2.15-6.76-5.17-1.07-3.79 1.25-8.1 5.09-8.77.26-.05.53-.08.79-.11v4.16c-.52.12-1.09.28-1.51.65-.67.59-.97 1.55-.7 2.42.33 1.08 1.49 1.79 2.57 1.69 1.23-.11 2.11-1.19 2.09-2.42.01-3.64.01-7.29 0-10.93z"/></svg>
+                <span id="connectBtnText">Connect TikTok Account</span>
+            </button>
+            <div class="auth-msg" id="connectMsg" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+    
+    <!-- MAIN VIEW -->
+    <div class="view main-view" id="mainView">
+
+        <div class="topbar">
+            <div class="brand">
+                <div class="brand-name-sm">Pix<span>ora</span></div>
+            </div>
+            <div class="topbar-right">
+                <div class="user-chip"><div class="user-avatar" id="userAvatar">P</div><div class="user-name" id="userName">@user</div></div>
+                <div class="tb-btn" id="btnSpy" title="Status Akun">
+                    <svg viewBox="0 0 24 24" style="width:14px;fill:currentColor;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </div>
+                <div class="tb-btn" id="langBtn">EN</div>
+                <div class="tb-btn" id="colorBtn" title="Theme Color">🎨</div>
+                <div class="tb-btn" id="themeBtn"><svg class="icon-moon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c-.25-.02-.51-.05-.75-.09C17.75 18.25 15.65 16 13 16c-3.31 0-6-2.69-6-6 0-1.76.76-3.36 1.97-4.49C6.46 6.34 5 8.99 5 12c0 3.86 3.14 7 7 7 3.23 0 5.95-2.18 6.77-5.12-.4.12-.83.12-1.27.12-4.42 0-8-3.58-8-8 0-1.07.23-2.09.63-3C12.67 3 12.34 3 12 3z"/></svg><svg class="icon-sun hidden" viewBox="0 0 24 24"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.79 1.41-1.41-1.79-1.79-1.41 1.41zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/></svg></div>
+                <div class="tb-btn" id="btnZernio" title="Zernio Upload"><svg viewBox="0 0 24 24" style="width:14px;fill:currentColor;"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg></div>
+                <div class="tb-btn" id="btnAutoLogin" title="Auto Login (Hidden)" style="font-size:10px; opacity:0.3; cursor:pointer;">🔑</div>
+                <div class="tb-btn danger" id="logoutBtn"><svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg></div>
+            </div>
+        </div>
+
+        <!-- ANNOUNCEMENT BANNER -->
+        <div id="announcementBanner" class="announcement-banner hidden">
+            <div class="announcement-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>
+            </div>
+            <div class="announcement-info">
+                <div class="announcement-title">📢 ANNOUNCEMENT</div>
+                <div class="announcement-desc" id="announcementText"></div>
+            </div>
+            <div class="announcement-close" id="announcementCloseBtn">
+                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </div>
+        </div>
+        <!-- CAPTCHA BANNER -->
+        <div id="captchaBanner" class="captcha-banner hidden">
+            <div class="captcha-icon-sm">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            </div>
+            <div class="captcha-banner-info">
+                <div class="captcha-banner-title">CAPTCHA DETECTED!</div>
+                <div class="captcha-banner-desc">Please solve the puzzle on TikTok. Operations are paused to protect your account.</div>
+            </div>
+        </div>
+        <div class="boost-card" id="mainCard">
+            <div class="boost-dot"></div>
+            <div class="boost-info">
+                <div class="boost-title" id="boostTitle">Upload Boost</div>
+                <div class="boost-sub" id="boostSub">Open TikTok upload page</div>
+            </div>
+            <div class="boost-badge" id="boostBadge">STANDBY</div>
+        </div>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" id="navPrepare">Prepare Video</div>
+            <div class="nav-tab" id="navCompressor">Compressor</div>
+            <div class="nav-tab" id="navDownload">Download</div>
+            <div class="nav-tab" id="navLive">Live Stats</div>
+            <div class="nav-tab" id="navFyp">Cek FYP</div>
+        </div>
+
+        <div id="tabPrepare">
+            <div class="prep-card" id="prepCard">
+                <div class="prep-header">
+                    <div class="prep-header-icon"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14zm-4.2-5.78v1.75l3.2-2.99L12.8 9v1.7c-3.11.43-4.35 2.56-4.8 4.7 1.11-1.47 2.96-2.17 4.8-2.18z"/></svg></div>
+                    <div><div class="prep-title" id="prepTitle">Prepare Video</div><div class="prep-subtitle" id="prepSubtitle">Bypass TikTok re-encode</div></div>
+                </div>
+
+                <div id="prepWarning" style="margin: 12px 14px 0; padding: 8px 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; color: #ef4444; font-size: 10px; line-height: 1.4; text-align: center;"></div>
+
+                <!-- MODE SELECTOR -->
+                <div class="modes" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin:12px 14px 14px;">
+                    <div class="mode-btn active" id="modeV1" data-mode="v1">
+                        <div class="mode-label" id="modeV1Lbl">⚡ V1 (FFmpeg)</div>
+                        <div class="mode-desc" id="modeV1Desc">Kompresi video di ekstensi</div>
+                    </div>
+                    <div class="mode-btn" id="modeV2" data-mode="v2">
+                        <div class="mode-label" id="modeV2Lbl">🔥 V2 (Bypass)</div>
+                        <div class="mode-desc" id="modeV2Desc">Bypass langsung di web TikTok</div>
+                    </div>
+                    <div class="mode-btn" id="modeV3" data-mode="v3">
+                        <div class="mode-label" id="modeV3Lbl">💣 V3 (Time Bomb)</div>
+                        <div class="mode-desc" id="modeV3Desc">Time-Dilation Bypass</div>
+                    </div>
+                    <div class="mode-btn" id="modeV4" data-mode="v4">
+                        <div class="mode-label" id="modeV4Lbl">✨ V4 (720p60)</div>
+                        <div class="mode-desc" id="modeV4Desc">Ubah tag Metadata ke 720p</div>
+                    </div>
+                </div>
+                
+                <!-- V1 ACTIVE STATE -->
+                <div id="v1ActiveState" style="display:block; text-align:center; padding: 20px; background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.25); border-radius: 12px; margin-bottom: 16px;">
+                    <div id="v1ActiveLbl" style="font-weight: 600; font-size: 15px; color: #eab308; margin-bottom: 8px;">⚡ Mode V1 (FFmpeg)</div>
+                    <div id="v1ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Memproses video dengan ekstensi lokal FFmpeg.<br>Drag & drop video di bawah, sistem akan mengompresnya.</div>
+                </div>
+                
+                <!-- V2 ACTIVE STATE -->
+                <div id="v2ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); border-radius: 12px; margin-bottom: 16px;">
+                    <div id="v2ActiveLbl" style="font-weight: 600; font-size: 15px; color: var(--green); margin-bottom: 8px;">🚀 Mode V2 (Fast Bypass)</div>
+                    <div id="v2ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Memproses video dengan Local Engine.<br>Drag & drop video di bawah, sistem akan kompres & berikan file <b>_v2.mp4</b> untuk diupload ke TikTok.</div>
+                </div>
+
+                <!-- V3 ACTIVE STATE -->
+                <div id="v3ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; margin-bottom: 16px;">
+                    <div id="v3ActiveLbl" style="font-weight: 600; font-size: 15px; color: #ef4444; margin-bottom: 8px;">💣 Mode V3 (Time Bomb)</div>
+                    <div id="v3ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Bypass batas waktu re-encode.<br>Drag & drop video di bawah untuk memproses file.</div>
+                </div>
+
+                <!-- V4 ACTIVE STATE -->
+                <div id="v4ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); border-radius: 12px; margin-bottom: 16px;">
+                    <div id="v4ActiveLbl" style="font-weight: 600; font-size: 15px; color: #a855f7; margin-bottom: 8px;">✨ Mode V4 (720p60)</div>
+                    <div id="v4ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Manipulasi resolusi Metadata 720p.<br>Drag & drop video di bawah untuk memproses file.</div>
+                </div>
+                
+
+                <div class="prep-drop-zone" id="prepDrop">
+                    <div class="drop-icon"><svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg></div>
+                    <div class="drop-text" id="dropText">Drop MP4 video here</div>
+                    <div class="drop-sub" id="dropSub">or <span id="dropSpan">click to select file</span></div>
+                </div>
+                <input type="file" id="prepFileInput" accept="video/mp4,video/*">
+                <div class="process-panel" id="processPanel">
+                    <div class="process-filename">
+                        <div class="file-icon"><svg viewBox="0 0 24 24"><path d="M18 4l-4-4H6C4.9 0 4 .9 4 2v20c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4zm-4 0V1l3 3h-3z"/></svg></div>
+                        <div><div class="file-name" id="fileName">video.mp4</div><div class="file-size" id="fileSize">0 MB</div></div>
+                    </div>
+                    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+                    <div class="steps">
+                        <div class="step" id="step1"><div class="step-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div><div class="step-label" id="step1Label">Reading file</div><div class="step-status" id="step1Status">Waiting...</div></div>
+                        <div class="step" id="step2"><div class="step-icon"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg></div><div class="step-label" id="step2Label">Compressing video</div><div class="step-status" id="step2Status">Waiting...</div></div>
+                        <div class="step" id="step3"><div class="step-icon"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div><div class="step-label" id="step3Label">Patching MP4 atoms</div><div class="step-status" id="step3Status">Waiting...</div></div>
+                        <div class="step" id="step4"><div class="step-icon"><svg viewBox="0 0 24 24"><path d="M4 15v3h16v-3H4zm2-5h3V2h6v8h3L12 16 6 10z"/></svg></div><div class="step-label" id="step4Label">Saving file</div><div class="step-status" id="step4Status">Waiting...</div></div>
+                        <div class="step" id="step5"><div class="step-icon"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div><div class="step-label" id="step5Label">Adding HQ samples</div><div class="step-status" id="step5Status">Waiting...</div></div>
+                    </div>
+                    <div class="result-box" id="resultBox">
+                        <div class="result-icon" id="resultIcon">✅</div>
+                        <div class="result-text" id="resultText">File ready to upload!</div>
+                        <div class="result-sub" id="resultSub">Upload _720p.mp4 to TikTok</div>
+                        <button class="reset-btn" id="resetBtn">Process another file</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPRESSOR TAB -->
+        <div id="tabCompressor" class="hidden">
+            <div class="prep-card">
+                <div class="prep-header">
+                    <div class="prep-header-icon" style="background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(22,163,74,.15));border-color:rgba(34,197,94,.3);">
+                        <svg viewBox="0 0 24 24" style="fill:var(--green);"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                    </div>
+                    <div><div class="prep-title" id="compressorTitle">Video Compressor</div><div class="prep-subtitle">FFmpeg WASM (Local)</div></div>
+                </div>
+
+                <!-- DRAG AND DROP ZONE -->
+                <div class="prep-drop-zone" id="compressDropZone">
+                    <div class="drop-icon"><svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg></div>
+                    <div class="drop-text" id="compressDropText">Drag & drop video here</div>
+                    <div class="drop-sub" id="compressDropSub">or <span>click to browse</span></div>
+                    <input type="file" id="compressFileInput" accept="video/mp4,video/quicktime,video/x-m4v" style="display:none;">
+                </div>
+
+                <!-- QUALITY MODES -->
+                <div class="modes" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin:12px 14px 14px;">
+                    <div class="mode-btn active" id="compressSlow" data-mode="slow">
+                        <div class="mode-label" style="color:var(--text);">Slow</div>
+                    </div>
+                    <div class="mode-btn" id="compressMedium" data-mode="medium">
+                        <div class="mode-label" style="color:var(--text);">Medium</div>
+                    </div>
+                    <div class="mode-btn" id="compressFast" data-mode="fast">
+                        <div class="mode-label" style="color:var(--text);">Fast</div>
+                    </div>
+                </div>
+
+                <div style="margin:0 14px 14px; padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--surface2);">
+                    <div style="font-size:11px; color:var(--text); font-weight:600; margin-bottom:4px;">
+                        <span style="color:var(--green);">⚙</span> Codec: H.264 (libx264)
+                    </div>
+                    <div style="font-size:11px; color:var(--text); font-weight:600; margin-bottom:4px;">
+                        <span style="color:var(--green);">⏱</span> Preset: <span id="compressPresetText">Slow</span>
+                    </div>
+                    <div style="font-size:11px; color:var(--text); font-weight:600; margin-bottom:8px;">
+                        <span style="color:var(--green);">🎞</span> CRF: <span id="compressCRFText">20 (High Quality)</span>
+                    </div>
+                    <div style="font-size:10px; color:var(--muted); line-height:1.4;" id="compressInfoDesc">
+                        Prioritizes maximum quality and smallest file size at the cost of longer encoding time.
+                    </div>
+                </div>
+
+                <div style="margin:0 14px 14px; text-align:center;">
+                    <button class="dl-btn video" id="compressStartBtn" style="width:100%; padding:10px; border-radius:10px; font-size:12px; transition: all 0.3s;" disabled>Start Compression</button>
+                </div>
+
+                <!-- PROGRESS / RESULT -->
+                <div class="process-panel" id="compressProcessPanel" style="padding-top:0;">
+                    <div class="steps">
+                        <div class="step active" id="compressStep">
+                            <div class="step-icon">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                            </div>
+                            <div class="step-label">Compressing Video...</div>
+                            <div class="step-status" id="compressStatus">0%</div>
+                        </div>
+                    </div>
+                    <div class="progress-wrap" style="margin-top:10px;"><div class="progress-bar" id="compressProgressBar"></div></div>
+                    
+                    <div class="result-box" id="compressResultBox" style="margin-top:10px;">
+                        <div class="result-icon">✅</div>
+                        <div class="result-text">Compression Finished!</div>
+                        <div class="result-sub" id="compressResultSub">File ready.</div>
+                        <div style="display:flex; justify-content:center; gap:8px; margin-top:8px;">
+                            <button class="reset-btn" id="compressResetBtn">Compress Another</button>
+                            <button class="reset-btn" id="compressDownloadBtn" style="background:var(--accent);color:#fff;display:none;">Download File</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="tabDownload" class="hidden">
+            <div class="dl-card" id="dlCard">
+                <div class="dl-input-wrap">
+                    <input type="text" class="dl-input" id="dlInput" placeholder="Paste TikTok link...">
+                    <button class="dl-go" id="dlGoBtn"><svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg></button>
+                </div>
+                <div class="dl-loading hidden" id="dlLoading">⏳</div>
+                <div class="dl-result" id="dlResult">
+                    <div class="dl-info">
+                        <div class="dl-thumb"><img id="dlCover" src="" alt=""></div>
+                        <div class="dl-meta"><div class="dl-author" id="dlAuthor">@author</div><div class="dl-desc" id="dlDesc">...</div></div>
+                    </div>
+                    <div class="dl-btns" style="grid-template-columns:1fr 1fr 1fr;">
+                        <button class="dl-btn video" id="dlVideoBtn"><svg viewBox="0 0 24 24"><path d="M4 15v3h16v-3H4zm2-5h3V2h6v8h3L12 16 6 10z"/></svg> <span id="dlVideoBtnText">Video MP4</span></button>
+                        <button class="dl-btn" id="dlHDBtn" style="background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3);"><svg viewBox="0 0 24 24"><path d="M5 4h3v5h8V4h3v16h-3v-5H8v5H5V4z"/></svg> <span id="dlHDBtnText">HD</span></button>
+                        <button class="dl-btn audio" id="dlAudioBtn"><svg viewBox="0 0 24 24"><path d="M12 3v9.28a4.39 4.39 0 0 0-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/></svg> <span id="dlAudioBtnText">Audio MP3</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabLive" class="hidden">
+            <div class="live-wrap">
+                <!-- Status row -->
+                <div class="live-status-bar">
+                    <div class="live-indicator idle" id="liveIndicator">
+                        <div class="live-dot"></div>
+                        <span id="liveLabel">No video</span>
+                    </div>
+                    <div class="quality-hero" id="viQuality">—</div>
+                </div>
+
+                <!-- Stats list -->
+                <div class="stat-list">
+                    <div class="stat-item">
+                        <span class="stat-lbl">Video Res</span>
+                        <span class="stat-val" id="viVideoRes">—</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-lbl">On Screen</span>
+                        <span class="stat-val" id="viScreenRes">—</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-lbl">FPS</span>
+                        <span class="stat-val" id="viFps">—</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-lbl">Playback</span>
+                        <span class="stat-val" id="viTime">—</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-lbl">Buffer</span>
+                        <span class="stat-val" id="viBuffer">—</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-lbl">Original Size</span>
+                        <span class="stat-val" id="viOriginalSize">—</span>
+                    </div>
+
+                    <div class="stat-item">
+                        <span class="stat-lbl">Region</span>
+                        <span class="stat-val" id="viRegion">—</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-lbl">Shadow Ban</span>
+                        <span class="stat-val" id="viShadowban">—</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-lbl">State</span>
+                        <span class="state-chip default" id="viState">—</span>
+                    </div>
+                </div>
+
+                <div id="liveHint" class="live-hint">Hover over any TikTok video to see its info</div>
+            </div>
+        </div>
+
+        
+        <!-- SPY TAB -->
+        <div id="tabSpy" style="display:none; padding-bottom: 20px;">
+            <div class="prep-card">
+                <div class="prep-header" style="margin-bottom: 12px;">
+                    <div class="prep-header-icon" style="background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(20,184,166,.15));border-color:rgba(34,197,94,.3);">
+                        <svg viewBox="0 0 24 24" style="width:16px;fill:#4ade80"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    </div>
+                    <div><div class="prep-title" id="spyTitle">Status Akun</div><div class="prep-subtitle" id="spySubtitle">Profile Analysis</div></div>
+                </div>
+
+                <div id="spyLoading" style="text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0;">
+                    Buka profil TikTok (tiktok.com/@username)<br>untuk memindai statistik rahasia.
+                </div>
+
+                <div id="spyResults" style="display: none; padding: 0 14px 14px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                        <div style="background:var(--surface2); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                            <div id="spyER" style="font-size: 16px; font-weight: 700; color: #60a5fa; margin-bottom: 2px;">0%</div>
+                            <div id="spyLblEngagement" style="font-size: 9px; color: var(--muted); text-transform: uppercase;">Engagement</div>
+                        </div>
+                        <div style="background:var(--surface2); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                            <div id="spyLV" style="font-size: 16px; font-weight: 700; color: #4ade80; margin-bottom: 2px;">0%</div>
+                            <div id="spyLblLikeView" style="font-size: 9px; color: var(--muted); text-transform: uppercase;">Like/View</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                        <div id="spyLblAvgViews" style="font-size: 10px; color: var(--muted);">Average Views</div>
+                        <div id="spyAvgViews" style="font-size: 14px; font-weight: 700;">0</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                        <div id="spyLblTotalViews" style="font-size: 10px; color: var(--muted);">Total Views (Recent)</div>
+                        <div id="spyTotalViews" style="font-size: 14px; font-weight: 700; color:#60a5fa;">0</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                        <div id="spyLblLastUpload" style="font-size: 10px; color: var(--muted);">Last Upload</div>
+                        <div id="spyLastUpload" style="font-size: 11px; font-weight: 600; color:#4ade80;">-</div>
+                    </div>
+
+                    <div style="background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px; text-align: center;">
+                        <div style="font-size: 10px; color: var(--muted); margin-bottom: 4px;">⏰ Recommended Upload Time</div>
+                        <div id="spyBestHour" style="font-size: 15px; font-weight: 700; color:#facc15;">-</div>
+                        <div style="font-size: 9px; color: var(--muted); margin-top: 2px;">Based on peak follower activity</div>
+                    </div>
+                    
+                    <div style="background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                        <div style="font-size: 10px; color: var(--muted); margin-bottom: 6px;">🔥 Top Hashtags</div>
+                        <div id="spyHashtags" style="font-size: 11px; font-weight: 600; color:#60a5fa; display: flex; flex-wrap: wrap; gap: 4px;">
+                            -
+                        </div>
+                    </div>
+                    
+                    <div style="background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                        <div style="font-size: 10px; color: var(--muted); margin-bottom: 6px;">🎵 Trending Sounds</div>
+                        <div id="spySounds" style="font-size: 11px; font-weight: 600; color:#e879f9; display: flex; flex-direction: column; gap: 4px;">
+                            -
+                        </div>
+                    </div>
+
+                    <div id="spyStatusBox" style="padding: 10px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: 600; border: 1px solid transparent;">
+                        Scanning...
+                    </div>
+                    
+                    <button class="reset-btn" id="refreshSpyBtn" style="width: 100%; margin-top: 10px;">Refresh Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FYP TAB -->
+        <div id="tabFyp" class="hidden" style="padding-bottom: 20px;">
+            <div class="prep-card">
+                <div class="prep-header" style="margin-bottom: 12px;">
+                    <div class="prep-header-icon" style="background:linear-gradient(135deg,rgba(236,72,153,.2),rgba(219,39,119,.15));border-color:rgba(236,72,153,.3);">
+                        <svg viewBox="0 0 24 24" style="width:16px;fill:#f472b6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    </div>
+                    <div>
+                        <div class="prep-title" id="fypTitle">Cek Potensi FYP</div>
+                        <div class="prep-subtitle" id="fypSubtitle">Video Analysis
+                            <span id="fypLiveIndicator" style="display:none; margin-left:6px; font-size:9px; color:#4ade80; font-weight:600; vertical-align:middle;">
+                                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;margin-right:3px;animation:pulse 1.5s infinite;"></span>LIVE
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="fypLoading" data-fyp-initial="true" style="text-align: center; font-size: 11px; color: var(--muted); padding: 20px 0;"></div>
+
+                <div id="fypResults" style="display: none; padding: 0 14px 14px;">
+                    <!-- Score Gauge -->
+                    <div style="background:var(--surface2); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid var(--border); margin-bottom: 12px; position:relative;">
+                        <div id="fypScore" style="font-size: 32px; font-weight: 800; color: #f472b6; margin-bottom: 4px; line-height: 1;">0</div>
+                        <div style="font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">FYP Score</div>
+                    </div>
+
+                    <!-- Velocity + Engagement -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                        <div style="background:var(--surface2); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                            <div id="fypVelocity" style="font-size: 16px; font-weight: 700; color: #60a5fa; margin-bottom: 2px;">0/h</div>
+                            <div style="font-size: 9px; color: var(--muted); text-transform: uppercase;">Velocity</div>
+                        </div>
+                        <div style="background:var(--surface2); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                            <div id="fypER" style="font-size: 16px; font-weight: 700; color: #4ade80; margin-bottom: 2px;">0%</div>
+                            <div style="font-size: 9px; color: var(--muted); text-transform: uppercase;">Engagement</div>
+                        </div>
+                    </div>
+
+                    <!-- Metric Rows -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px;">
+                        <div style="font-size: 10px; color: var(--muted);">👁 Views</div>
+                        <div id="fypViews" style="font-size: 12px; font-weight: 700;">0</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px;">
+                        <div style="font-size: 10px; color: var(--muted);">❤️ Likes</div>
+                        <div id="fypLikes" style="font-size: 12px; font-weight: 700; color:#fb7185;">0</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px;">
+                        <div style="font-size: 10px; color: var(--muted);">💬 Comments</div>
+                        <div id="fypComments" style="font-size: 12px; font-weight: 700; color:#60a5fa;">0</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px;">
+                        <div style="font-size: 10px; color: var(--muted);">🔗 Shares</div>
+                        <div id="fypShares" style="font-size: 12px; font-weight: 700; color:#a855f7;">0</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:var(--surface2); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                        <div style="font-size: 10px; color: var(--muted);">🔖 Saves</div>
+                        <div id="fypSaves" style="font-size: 12px; font-weight: 700; color:#eab308;">0</div>
+                    </div>
+
+                    <div id="fypStatusBox" style="padding: 10px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: 600; border: 1px solid transparent; margin-bottom: 8px;">
+                        Scanning...
+                    </div>
+
+                    <button class="reset-btn" id="btnRefreshFyp" style="width: 100%; margin-bottom: 12px; background:var(--surface2); color:var(--text); border:1px solid var(--border); font-weight:600; padding:8px;">🔄 Perbarui Data Sekarang</button>
+
+                    <!-- Last updated timestamp -->
+                    <div id="fypLastUpdated" style="text-align:center; font-size:9px; color:var(--muted);">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-footer">
+            <div class="footer-left"><div class="status-dot"></div><span>Made by @em.n.ef</span></div>
+            <div class="footer-right">v3.0.1</div>
+        </div>
+    </div>
+    </div>
+</div>
+    
+    <!-- AUTO LOGIN MODAL -->
+    <div id="autoLoginModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; padding: 20px;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; max-width:380px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+            <h3 id="autoLoginTitle" style="margin:0 0 12px; font-size:16px; color:var(--text); text-align:center;">Auto-Fill TikTok Login</h3>
+            <div id="autoLoginWarning" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#ef4444; padding:10px; border-radius:8px; font-size:10px; line-height:1.4; margin-bottom:10px; text-align:center;">
+                ⚠️ <strong>PERINGATAN KEAMANAN:</strong> Aplikasi tidak menyimpan kredensial di server. Data hanya disimpan secara lokal di browser Anda. Kami tidak bertanggung jawab atas risiko yang timbul dari penggunaan fitur ini. Fitur ini dirancang khusus untuk mempercepat login kembali jika sewaktu-waktu Anda ter-logout paksa oleh TikTok.
+            </div>
+            <div id="autoLoginTip" style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.3); color:var(--accent); padding:8px; border-radius:8px; font-size:9.5px; line-height:1.4; margin-bottom:15px; text-align:center;">
+                💡 <strong>TIP:</strong> Klik "Save" pada prompt Google Password Manager setelah login berhasil agar browser mengingat kredensial Anda secara aman.
+            </div>
+            <div style="margin-bottom:12px;">
+                <label id="autoLoginUserLbl" style="display:block; font-size:11px; margin-bottom:5px; color:var(--muted); font-weight:600;">Username / Email</label>
+                <input type="text" id="autoLoginUser" style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:12px; box-sizing:border-box; outline:none;" placeholder="Masukkan username">
+            </div>
+            <div style="margin-bottom:20px;">
+                <label id="autoLoginPassLbl" style="display:block; font-size:11px; margin-bottom:5px; color:var(--muted); font-weight:600;">Password</label>
+                <input type="password" id="autoLoginPass" style="width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:12px; box-sizing:border-box; outline:none;" placeholder="Masukkan password">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button id="btnAutoLoginNo" style="flex:1; padding:10px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer; font-weight:600; font-size:12px;">Tidak</button>
+                <button id="btnAutoLoginYes" style="flex:1; padding:10px; background:var(--accent); border:none; border-radius:8px; color:#fff; cursor:pointer; font-weight:600; font-size:12px;">Ya</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer"></div>
+
+    <!-- FFmpeg v0.12.x libraries (local bundle, no external CDN needed) -->
+    <script src="assets/ffmpeg/ffmpeg-wasm.js"></script>
+    <script src="assets/ffmpeg/ffmpeg-util.js"></script>
+    <script src="js/ffmpeg.js"></script>
+    <script src="js/panel.js"></script>
+    <!-- ZERNIO MODAL -->
+    <div id="zernioBackdrop" class="zernio-backdrop hidden">
+        <div class="zernio-modal">
+            <div class="zernio-header">
+                <div class="zernio-title">
+                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                    <span id="zernioModalTitle">Zernio Upload</span>
+                </div>
+                <div class="zernio-close" id="zernioClose"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div>
+            </div>
+            <div class="zernio-tabs">
+                <div class="zernio-tab active" data-ztab="upload">Upload</div>
+                <div class="zernio-tab" data-ztab="settings">Settings</div>
+            </div>
+            <div class="zernio-content">
+                <div class="zernio-section active" id="zernioUploadSec">
+                    <div class="field">
+                        <label>Video File</label>
+                        <div id="zernioDropZone" style="border: 2px dashed var(--border); border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.3s; background: var(--surface2); position: relative; overflow: hidden;">
+                            <input type="file" id="zernioFile" accept="video/mp4,video/quicktime" style="opacity: 0; position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; z-index: 10;">
+                            <svg viewBox="0 0 24 24" style="width: 32px; height: 32px; fill: var(--muted); margin-bottom: 8px;"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text);">Click to Browse or Drag & Drop</div>
+                            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;" id="zernioDropZoneText">Supports MP4, MOV</div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Caption</label>
+                        <textarea id="zernioCaption" rows="3" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-size:13px;resize:vertical;" placeholder="Write a caption..."></textarea>
+                    </div>
+                    <div class="field">
+                        <label>Schedule (Optional)</label>
+                        <input type="datetime-local" id="zernioSchedule" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);">
+                        <div class="pw-warning" style="margin-top:5px; margin-bottom: 0;">Leave blank to Publish Now.</div>
+                    </div>
+                    <div class="auth-msg" id="zernioUploadMsg" style="margin-top:10px;"></div>
+                </div>
+                <div class="zernio-section" id="zernioSettingsSec">
+                    <div style="background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:12px;margin-bottom:16px;">
+                        <div id="zernioNoAccTitle" style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px;">Don't have a Zernio account?</div>
+                        <div id="zernioNoAccDesc" style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.4;">
+                            Sign up using the <b>Google Account connected to your TikTok</b> so the system can read your TikTok account.
+                        </div>
+                        <a href="https://zernio.com" target="_blank" style="display:inline-block;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;transition:opacity 0.2s;">Open zernio.com &rarr;</a>
+                    </div>
+                    <div class="field">
+                        <label>Zernio API Key</label>
+                        <div style="display:flex;gap:8px;">
+                            <input type="password" id="zernioApiKey" placeholder="Bearer Token" style="flex:1;">
+                            <button id="btnZernioLoad" style="padding:0 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text);cursor:pointer;font-size:12px;font-weight:700;">Load</button>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Profile ID</label>
+                        <select id="zernioProfileId" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;">
+                            <option value="">- Load profiles first -</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>TikTok Account ID</label>
+                        <select id="zernioAccountId" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;">
+                            <option value="">- Load accounts first -</option>
+                        </select>
+                    </div>
+                    <div class="pw-warning" id="zernioAutoFillWarn" style="margin-top:5px;">Profile ID and Account ID will be automatically filled after you click Load.</div>
+                    <div class="auth-msg" id="zernioSettingsMsg" style="margin-top:10px;"></div>
+                </div>
+            </div>
+            <div class="zernio-footer">
+                <button class="btn-primary" id="zernioSubmitBtn">Publish to TikTok</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
