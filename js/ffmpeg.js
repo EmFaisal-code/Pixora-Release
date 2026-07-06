@@ -477,17 +477,6 @@ function buildStcoReplacementsV2(u8, stcoBoxes, videoStco, delta, fakeOffset, fa
 }
 
 
-function buildSttsV1(realSampleCount) {
-    // 2 entries: real samples + fake samples, both with delta=1500
-    const data = new Uint8Array(4 + 4 + 2 * 8); // version/flags + count + 2 entries
-    const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    dv.setUint32(4, 2, false);                        // entry_count
-    dv.setUint32(8, realSampleCount, false);           // entry 1: count
-    dv.setUint32(12, VIDEO_SAMPLE_DELTA, false);       // entry 1: delta
-    dv.setUint32(16, FAKE_SAMPLE_COUNT, false);        // entry 2: count
-    dv.setUint32(20, VIDEO_SAMPLE_DELTA, false);       // entry 2: delta
-    return makeBox('stts', data);
-}
 
 function buildStszV1(originalSizes) {
     const totalCount = originalSizes.length + FAKE_SAMPLE_COUNT;
