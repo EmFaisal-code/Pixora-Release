@@ -21,6 +21,7 @@
         body{width:450px;height:650px;padding-bottom:40px;background:var(--bg);color:var(--text);font-family:'Inter','Segoe UI',sans-serif;overflow-x:hidden;overflow-y:auto;transition:background .3s,color .3s;}
         .hidden{display:none!important;}
         .view{display:none;flex-direction:column;} .view.active{display:flex;}
+        .main-view { padding-bottom: 30px; }
         /* AUTH */
         #authView{padding:28px 20px;align-items:center;}
         .brand-mark{display:flex;flex-direction:column;align-items:center;margin-bottom:24px;}
@@ -130,12 +131,152 @@
         .prep-header-icon{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.15));border:1px solid rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .prep-header-icon svg{width:16px;fill:var(--accent);}
         .prep-title{font-weight:700;font-size:13px;} .prep-subtitle{font-size:10px;color:var(--muted);margin-top:1px;}
-        .mode-btn{padding:8px 10px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:all .2s;text-align:center;}
-        .mode-btn:hover{border-color:var(--accent);}
-        .mode-btn.active{background:rgba(99,102,241,.12);border-color:var(--accent);}
-        .mode-label{font-size:12px;font-weight:700;margin-bottom:2px;}
-        .mode-btn.active .mode-label{color:var(--accent);}
-        .mode-desc{font-size:9px;color:var(--muted);line-height:1.3;}
+        /* Pixora Premium Dropdown */
+        .pix-dropdown {
+            user-select: none;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .pix-dropdown-trigger {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        body.light .pix-dropdown-trigger {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+        }
+        .pix-dropdown-trigger:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        body.light .pix-dropdown-trigger:hover {
+            background: #f8fafc;
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+        .pix-dropdown-trigger-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .pix-dropdown-icon {
+            font-size: 18px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        body.light .pix-dropdown-icon {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        .pix-dropdown-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .pix-dropdown-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #ffffff;
+            letter-spacing: 0.2px;
+        }
+        body.light .pix-dropdown-label {
+            color: #0F172A;
+        }
+        .pix-dropdown-desc {
+            font-size: 11px;
+            color: #94A3B8;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        body.light .pix-dropdown-desc {
+            color: #64748B;
+        }
+        .pix-dropdown-arrow {
+            color: #94A3B8;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .pix-dropdown.open .pix-dropdown-arrow {
+            transform: rotate(180deg);
+            color: #ffffff;
+        }
+        body.light .pix-dropdown.open .pix-dropdown-arrow {
+            color: #0F172A;
+        }
+        .pix-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: 100%;
+            background: rgba(26, 27, 38, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.02) inset;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.98);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: top center;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        body.light .pix-dropdown-menu {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+        }
+        .pix-dropdown.open .pix-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+        .pix-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 2px;
+        }
+        .pix-dropdown-item:last-child {
+            margin-bottom: 0;
+        }
+        .pix-dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        body.light .pix-dropdown-item:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        .pix-dropdown-item.active {
+            background: rgba(236, 72, 153, 0.1); /* Pink accent from UI-UX Pro Max */
+            border-left: 3px solid #EC4899;
+        }
+        body.light .pix-dropdown-item.active {
+            background: rgba(219, 39, 119, 0.08);
+        }
+        .pix-dropdown-item.active .pix-dropdown-icon {
+            background: rgba(236, 72, 153, 0.15);
+            color: #F472B6;
+        }
+        body.light .pix-dropdown-item.active .pix-dropdown-icon {
+            background: rgba(219, 39, 119, 0.1);
+        }
+
         .prep-drop-zone{margin:12px 14px;border:1.5px dashed rgba(99,102,241,.35);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .25s;}
         .prep-drop-zone:hover,.prep-drop-zone.drag-over{border-color:var(--accent);background:rgba(99,102,241,.05);}
         .drop-icon{width:36px;height:36px;border-radius:50%;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
@@ -217,6 +358,89 @@
         .state-chip.loading,.state-chip.buffering{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.25);color:var(--accent);}
         .state-chip.default{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--muted);}
         .live-hint{font-size:10px;color:var(--muted);text-align:center;padding:8px 0;opacity:.7;}
+        /* PRE-COMPRESS TOGGLE UI */
+        /* PREMIUM TOGGLE SWITCH */
+        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
+        .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 2px; bottom: 2px; background-color: #fff; transition: .4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .toggle-switch input:checked + .toggle-slider { background-color: var(--accent); border-color: var(--accent); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 12px rgba(99, 102, 241, 0.4); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        /* PREMIUM SELECT */
+        .sleek-select {
+            appearance: none; -webkit-appearance: none;
+            background-color: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 6px 30px 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 14px;
+        }
+        .sleek-select:hover {
+            background-color: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+        }
+        .sleek-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .sleek-select option {
+            background-color: var(--surface2);
+            color: #fff;
+        }
+
+        /* MINI DROPDOWN */
+        .mini-dropdown { position: relative; display: inline-block; min-width: 80px; }
+        .mini-dropdown-trigger { 
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            background-color: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; padding: 4px 10px; border-radius: 8px;
+            font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+        }
+        .mini-dropdown-trigger:hover { background-color: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+        .mini-dropdown-trigger.open { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+        .mini-dropdown-trigger svg { width: 14px; height: 14px; transition: transform 0.2s ease; stroke: rgba(255,255,255,0.7); }
+        .mini-dropdown-trigger.open svg { transform: rotate(180deg); }
+        
+        .mini-dropdown-menu {
+            position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%;
+            background: rgba(20, 20, 25, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 4px;
+            opacity: 0; visibility: hidden; transform: translateY(-4px); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset;
+        }
+        .mini-dropdown.open .mini-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+        .mini-dropdown-item {
+            padding: 6px 8px; border-radius: 5px; font-size: 12px; font-weight: 500;
+            color: var(--muted); cursor: pointer; transition: all 0.15s ease;
+        }
+        .mini-dropdown-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .mini-dropdown-item.active { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+
+        /* PREMIUM SEGMENTED CONTROL (COMPRESSOR) */
+        .premium-segment-container {
+            display: flex; background: rgba(0,0,0,0.4); border-radius: 10px;
+            padding: 4px; border: 1px solid rgba(255,255,255,0.05); gap: 4px; margin: 12px 14px 14px;
+        }
+        .premium-segment-btn {
+            flex: 1; padding: 8px 0; border-radius: 8px; font-size: 12px; font-weight: 600;
+            color: var(--muted); cursor: pointer; text-align: center; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .premium-segment-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .premium-segment-btn.active {
+            background: rgba(99, 102, 241, 0.15); color: var(--accent);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(99, 102, 241, 0.3);
+        }
+
         /* PARALLAX BG - INTERACTIVE DUST (CANVAS) */
         #dustCanvas{position:fixed;inset:0;z-index:-2;pointer-events:none;}
         .bg-overlay{position:fixed;inset:0;background:linear-gradient(to bottom, transparent 0%, var(--bg) 100%);z-index:-1;pointer-events:none;}
@@ -260,17 +484,6 @@
         .pix-toast.error .toast-icon { color: #ef4444; }
         .pix-toast.info .toast-icon { color: var(--accent); }
         /* INLINE MODE OVERRIDES */
-        html.inline-mode, body.inline-mode {
-            background: transparent !important;
-            border-radius: inherit;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100vw;
-            height: 100vh;
-            border: none;
-        }
         body.inline-mode .app-container {
             width: 100%;
             height: 100%;
@@ -290,6 +503,7 @@
         body.inline-mode .view {
             position: relative;
             z-index: 2;
+            background: transparent !important;
         }
         body.inline-mode .view:not(#inlineProgressView) {
             display: none !important;
@@ -301,6 +515,7 @@
             padding: 0;
             margin: 0;
             max-width: none;
+            box-sizing: border-box;
         }
         body.inline-mode #inlineProgressView.active {
             display: flex;
@@ -308,7 +523,7 @@
         
         /* Inline Progress View Theme */
         .inline-card {
-            width: 100%; height: 100%; background: #111219; border-radius: 16px; padding: 20px 24px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 16px 40px rgba(0,0,0,0.6); display: flex; gap: 20px; align-items: center; position: relative;
+            width: 100%; height: 100%; background: #111219; border-radius: 16px; padding: 20px 24px; border: 1px solid rgba(255,255,255,0.05); display: flex; gap: 20px; align-items: center; position: relative; box-sizing: border-box;
         }
         body.light .inline-card {
             background: #ffffff;
@@ -355,6 +570,27 @@
         .zernio-section.dragover *{pointer-events:none;}
         .zernio-footer{padding:16px 20px;border-top:1px solid var(--border);background:var(--surface2);display:flex;gap:10px;}
         .zernio-footer .btn-primary{flex:1;}
+
+        /* --- INLINE MODE OVERRIDES (MUST BE AT THE END) --- */
+        body.inline-mode .view:not(#inlineProgressView) {
+            display: none !important;
+        }
+
+        html {
+            background: transparent !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        body.inline-mode {
+            width: 100% !important;
+            height: 100% !important;
+            padding-bottom: 0 !important;
+            background: transparent !important;
+            overflow: hidden !important;
+            margin: 0;
+            padding: 0;
+        }
     </style>
 </head>
 <body class="theme-purple">
@@ -380,7 +616,7 @@
     </div>
 
     <!-- INLINE PROGRESS VIEW -->
-    <div id="inlineProgressView" class="view" style="width: 100%; height: 100%; padding: 24px;">
+    <div id="inlineProgressView" class="view" style="width: 100%; height: 100%;">
         <div class="inline-card">
             
             <button id="inlineCancelBtn" style="position: absolute; top: 16px; right: 16px; background: none; border: none; color: #8e8f9b; cursor: pointer; padding: 4px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='rgba(142,143,155,0.1)'" onmouseout="this.style.background='none'">
@@ -546,50 +782,101 @@
 
                 <div id="prepWarning" style="margin: 12px 14px 0; padding: 8px 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; color: #ef4444; font-size: 10px; line-height: 1.4; text-align: center;"></div>
 
-                <!-- MODE SELECTOR -->
-                <div class="modes" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin:12px 14px 14px;">
-                    <div class="mode-btn active" id="modeV1" data-mode="v1">
-                        <div class="mode-label" id="modeV1Lbl">⚡ V1 (FFmpeg)</div>
-                        <div class="mode-desc" id="modeV1Desc">Kompresi video di ekstensi</div>
+                <!-- PREMIUM MODE DROPDOWN -->
+                <div class="pix-dropdown" id="modeDropdown" style="margin: 12px 14px 14px; position: relative;">
+                    <div class="pix-dropdown-trigger" id="modeDropdownTrigger">
+                        <div class="pix-dropdown-trigger-content">
+                            <div class="pix-dropdown-icon" id="modeTriggerIcon">⚡</div>
+                            <div class="pix-dropdown-text">
+                                <div class="pix-dropdown-label" id="modeTriggerLbl">V1 (FFmpeg)</div>
+                                <div class="pix-dropdown-desc" id="modeTriggerDesc">Kompresi video di ekstensi</div>
+                            </div>
+                        </div>
+                        <svg class="pix-dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </div>
-                    <div class="mode-btn" id="modeV2" data-mode="v2">
-                        <div class="mode-label" id="modeV2Lbl">🔥 V2 (Bypass)</div>
-                        <div class="mode-desc" id="modeV2Desc">Bypass langsung di web TikTok</div>
-                    </div>
-                    <div class="mode-btn" id="modeV3" data-mode="v3">
-                        <div class="mode-label" id="modeV3Lbl">💣 V3 (Time Bomb)</div>
-                        <div class="mode-desc" id="modeV3Desc">Time-Dilation Bypass</div>
-                    </div>
-                    <div class="mode-btn" id="modeV4" data-mode="v4">
-                        <div class="mode-label" id="modeV4Lbl">👑 V4 (Ghost Patch)</div>
-                        <div class="mode-desc" id="modeV4Desc">Injeksi Metadata & Fake Samples</div>
+                    
+                    <div class="pix-dropdown-menu" id="modeDropdownMenu">
+                        <div class="pix-dropdown-item active" id="modeV1" data-mode="v1">
+                            <div class="pix-dropdown-icon">⚡</div>
+                            <div class="pix-dropdown-text">
+                                <div class="pix-dropdown-label" id="modeV1Lbl">V1 (FFmpeg)</div>
+                                <div class="pix-dropdown-desc" id="modeV1Desc">Kompresi video di ekstensi</div>
+                            </div>
+                        </div>
+                        <div class="pix-dropdown-item" id="modeV2" data-mode="v2">
+                            <div class="pix-dropdown-icon">🔥</div>
+                            <div class="pix-dropdown-text">
+                                <div class="pix-dropdown-label" id="modeV2Lbl">V2 (Bypass)</div>
+                                <div class="pix-dropdown-desc" id="modeV2Desc">Bypass langsung di web TikTok</div>
+                            </div>
+                        </div>
+                        <div class="pix-dropdown-item" id="modeV3" data-mode="v3">
+                            <div class="pix-dropdown-icon">💣</div>
+                            <div class="pix-dropdown-text">
+                                <div class="pix-dropdown-label" id="modeV3Lbl">V3 (Time Bomb)</div>
+                                <div class="pix-dropdown-desc" id="modeV3Desc">Time-Dilation Bypass</div>
+                            </div>
+                        </div>
+                        <div class="pix-dropdown-item" id="modeV4" data-mode="v4">
+                            <div class="pix-dropdown-icon">✨</div>
+                            <div class="pix-dropdown-text">
+                                <div class="pix-dropdown-label" id="modeV4Lbl">V4 (Atom Patch)</div>
+                                <div class="pix-dropdown-desc" id="modeV4Desc">Ubah tag resolusi metadata</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- V1 ACTIVE STATE -->
-                <div id="v1ActiveState" style="display:block; text-align:center; padding: 20px; background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.25); border-radius: 12px; margin-bottom: 16px;">
+                <div id="v1ActiveState" style="display:block; text-align:center; padding: 20px; background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.25); margin-bottom: 16px;">
                     <div id="v1ActiveLbl" style="font-weight: 600; font-size: 15px; color: #eab308; margin-bottom: 8px;">⚡ Mode V1 (FFmpeg)</div>
                     <div id="v1ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Memproses video dengan ekstensi lokal FFmpeg.<br>Drag & drop video di bawah, sistem akan mengompresnya.</div>
                 </div>
                 
                 <!-- V2 ACTIVE STATE -->
-                <div id="v2ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); border-radius: 12px; margin-bottom: 16px;">
-                    <div id="v2ActiveLbl" style="font-weight: 600; font-size: 15px; color: #22c55e; margin-bottom: 8px;">🚀 Mode V2 (Fast Bypass)</div>
+                <div id="v2ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); margin-bottom: 16px;">
+                    <div id="v2ActiveLbl" style="font-weight: 600; font-size: 15px; color: var(--green); margin-bottom: 8px;">🚀 Mode V2 (Fast Bypass)</div>
                     <div id="v2ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Memproses video dengan Local Engine.<br>Drag & drop video di bawah, sistem akan kompres & berikan file <b>_v2.mp4</b> untuk diupload ke TikTok.</div>
                 </div>
 
                 <!-- V3 ACTIVE STATE -->
-                <div id="v3ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; margin-bottom: 16px;">
+                <div id="v3ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); margin-bottom: 16px;">
                     <div id="v3ActiveLbl" style="font-weight: 600; font-size: 15px; color: #ef4444; margin-bottom: 8px;">💣 Mode V3 (Time Bomb)</div>
                     <div id="v3ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Bypass batas waktu re-encode.<br>Drag & drop video di bawah untuk memproses file.</div>
                 </div>
 
                 <!-- V4 ACTIVE STATE -->
-                <div id="v4ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); border-radius: 12px; margin-bottom: 16px;">
-                    <div id="v4ActiveLbl" style="font-weight: 600; font-size: 15px; color: #a855f7; margin-bottom: 8px;">👑 Mode V4 (Ghost Patch)</div>
-                    <div id="v4ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Memanipulasi metadata & fake samples.<br>Drag & drop video di bawah untuk memproses file.</div>
+                <div id="v4ActiveState" style="display:none; text-align:center; padding: 20px; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.25); margin-bottom: 16px;">
+                    <div id="v4ActiveLbl" style="font-weight: 600; font-size: 15px; color: #a855f7; margin-bottom: 8px;">✨ Mode V4 (Atom Patch)</div>
+                    <div id="v4ActiveDesc" style="font-size: 12px; color: var(--muted); line-height: 1.5;">Manipulasi resolusi Metadata.<br>Drag & drop video di bawah untuk memproses file.</div>
                 </div>
                 
+                <!-- PRE-COMPRESS TOGGLE UI -->
+                <div id="precompressWrapper" style="display:flex; align-items:center; justify-content:space-between; margin:0 14px 16px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px;">
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size:14px; font-weight:600; color:#fff;">Pre-Compress</span>
+                        <span style="font-size:11px; color:var(--muted);">Kompres FFmpeg sebelum bypass</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="mini-dropdown" id="pcSpeedDropdown" style="display:none;">
+                            <div class="mini-dropdown-trigger" id="pcSpeedTrigger">
+                                <span id="pcSpeedLabel">Medium</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                            <div class="mini-dropdown-menu" id="pcSpeedMenu">
+                                <div class="mini-dropdown-item" data-value="fast">Fast</div>
+                                <div class="mini-dropdown-item active" data-value="medium">Medium</div>
+                                <div class="mini-dropdown-item" data-value="slow">Slow</div>
+                            </div>
+                            <input type="hidden" id="precompressSpeed" value="medium">
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="precompressToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
 
                 <div class="prep-drop-zone" id="prepDrop">
                     <div class="drop-icon"><svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg></div>
@@ -639,16 +926,10 @@
                 </div>
 
                 <!-- QUALITY MODES -->
-                <div class="modes" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin:12px 14px 14px;">
-                    <div class="mode-btn active" id="compressSlow" data-mode="slow">
-                        <div class="mode-label" style="color:var(--text);">Slow</div>
-                    </div>
-                    <div class="mode-btn" id="compressMedium" data-mode="medium">
-                        <div class="mode-label" style="color:var(--text);">Medium</div>
-                    </div>
-                    <div class="mode-btn" id="compressFast" data-mode="fast">
-                        <div class="mode-label" style="color:var(--text);">Fast</div>
-                    </div>
+                <div class="premium-segment-container">
+                    <div class="premium-segment-btn active" id="compressSlow" data-mode="slow">Slow</div>
+                    <div class="premium-segment-btn" id="compressMedium" data-mode="medium">Medium</div>
+                    <div class="premium-segment-btn" id="compressFast" data-mode="fast">Fast</div>
                 </div>
 
                 <div style="margin:0 14px 14px; padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--surface2);">
@@ -919,7 +1200,7 @@
 
         <div class="main-footer">
             <div class="footer-left"><div class="status-dot"></div><span>Made by @em.n.ef</span></div>
-            <div class="footer-right">v3.0.3</div>
+            <div class="footer-right">v3.0.8</div>
         </div>
     </div>
     </div>

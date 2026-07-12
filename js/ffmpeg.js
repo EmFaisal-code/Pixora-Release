@@ -478,42 +478,6 @@ function buildStcoReplacementsV2(u8, stcoBoxes, videoStco, delta, fakeOffset, fa
 
 
 
-function buildStszV1(originalSizes) {
-    const totalCount = originalSizes.length + FAKE_SAMPLE_COUNT;
-    const data = new Uint8Array(4 + 4 + 4 + totalCount * 4); // ver/flags + sampleSize + count + entries
-    const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    dv.setUint32(4, 0, false);                        // sampleSize = 0 (variable)
-    dv.setUint32(8, totalCount, false);               // sample_count
-    // Original sizes
-    for (let i = 0; i < originalSizes.length; i++) {
-        dv.setUint32(12 + i * 4, originalSizes[i], false);
-    }
-    // Fake sample sizes (8 bytes each)
-    const fakeOff = 12 + originalSizes.length * 4;
-    for (let i = 0; i < FAKE_SAMPLE_COUNT; i++) {
-        dv.setUint32(fakeOff + i * 4, FAKE_SAMPLE_SIZE, false);
-    }
-    return makeBox('stsz', data);
-}
-
-function buildStscV1(originalRows, originalChunkCount) {
-    const rows = [...originalRows];
-    // Add new entry for the fake chunk if last row doesn't already have 1 sample/chunk
-    const lastRow = rows[rows.length - 1];
-    if (!lastRow || lastRow[1] !== 1) {
-        rows.push([originalChunkCount + 1, 1, 1]);
-    }
-    const data = new Uint8Array(4 + 4 + rows.length * 12); // ver/flags + count + entries
-    const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    dv.setUint32(4, rows.length, false);
-    for (let i = 0; i < rows.length; i++) {
-        dv.setUint32(8 + i * 12, rows[i][0], false);
-        dv.setUint32(12 + i * 12, rows[i][1], false);
-        dv.setUint32(16 + i * 12, rows[i][2], false);
-    }
-    return makeBox('stsc', data);
-}
-
 function buildStcoV1(originalOffsets, delta, fakeOffset) {
     const hasFake = fakeOffset !== null && fakeOffset !== undefined;
     const totalCount = originalOffsets.length + (hasFake ? FAKE_SAMPLE_COUNT : 0);
@@ -580,6 +544,7 @@ function patchMp4V1(arrayBuffer) {
         const mdhd = findDescendant(videoTrak, ['mdia', 'mdhd']);
         const elst = findDescendant(videoTrak, ['edts', 'elst']);
         const stts = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stts']);
+        const ctts = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'ctts']);
         const stsz = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stsz']);
         const stsc = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stsc']);
         const videoStco = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stco']);
@@ -592,26 +557,20 @@ function patchMp4V1(arrayBuffer) {
         // Parse original data from video track
         const stszData = parseStsz(u8, stsz);
         const stscData = parseStsc(u8, stsc);
+        const sttsData = parseSttsDynamic(u8, stts);
         const originalChunkCount = parseStco(u8, videoStco).count;
 
         const realSampleCount = stszData.sampleCount;
 
-        // Read actual sample delta from original stts (first entry delta)
-        let realSampleDelta = VIDEO_SAMPLE_DELTA; // fallback
-        if (stts) {
-            const sttsRaw = u8.slice(stts.dataOffset, stts.dataEnd);
-            const sttsRawDv = new DataView(sttsRaw.buffer, sttsRaw.byteOffset, sttsRaw.byteLength);
-            if (sttsRaw.length >= 16) {
-                realSampleDelta = sttsRawDv.getUint32(12, false); // first entry sample_delta
-            }
-        }
+        // Get delta from original stts (last entry)
+        const lastDelta = sttsData.length > 0 ? sttsData[sttsData.length - 1].delta : 512;
 
         // Build fixed replacement atoms (not offset-dependent)
-        const addedDuration = FAKE_SAMPLE_COUNT * realSampleDelta;
+        const addedDuration = FAKE_SAMPLE_COUNT * lastDelta;
         const newMdhd = buildMdhdDynamic(u8, mdhd, addedDuration);
-        const newStts = buildSttsV1(realSampleCount, realSampleDelta);
-        const newStsz = buildStszV1(stszData.sizes);
-        const newStsc = buildStscV1(stscData.rows, originalChunkCount);
+        const newStts = buildSttsDynamic(sttsData, FAKE_SAMPLE_COUNT, lastDelta);
+        const newStsz = buildStszDynamic(stszData.sizes, FAKE_SAMPLE_COUNT, FAKE_SAMPLE_SIZE);
+        const newStsc = buildStscDynamic(stscData.rows, originalChunkCount, FAKE_SAMPLE_COUNT);
 
         let newElst = null;
         if (elst) newElst = buildElst(u8, elst);
@@ -622,6 +581,10 @@ function patchMp4V1(arrayBuffer) {
         fixedReplacements.set(stts, newStts);
         fixedReplacements.set(stsz, newStsz);
         fixedReplacements.set(stsc, newStsc);
+        if (ctts) {
+            const cttsData = parseCtts(u8, ctts);
+            fixedReplacements.set(ctts, buildCttsDynamic(cttsData, FAKE_SAMPLE_COUNT, 0));
+        }
         if (elst && newElst) fixedReplacements.set(elst, newElst);
 
         // Preserved top-level boxes (everything except ftyp, moov, mdat)
@@ -694,30 +657,62 @@ function parseSttsDynamic(u8, stts) {
     const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
     const count = dv.getUint32(stts.offset + 12, false);
     const entries = [];
+    let pos = stts.offset + 16;
     for (let i = 0; i < count; i++) {
         entries.push({
-            count: dv.getUint32(stts.offset + 16 + i * 8, false),
-            delta: dv.getUint32(stts.offset + 20 + i * 8, false)
+            count: dv.getUint32(pos, false),
+            delta: dv.getUint32(pos + 4, false)
         });
+        pos += 8;
+    }
+    return entries;
+}
+
+function parseCtts(u8, ctts) {
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    const count = dv.getUint32(ctts.offset + 12, false);
+    const entries = [];
+    let pos = ctts.offset + 16;
+    for (let i = 0; i < count; i++) {
+        entries.push({
+            count: dv.getUint32(pos, false),
+            offset: dv.getUint32(pos + 4, false)
+        });
+        pos += 8;
     }
     return entries;
 }
 
 function buildSttsDynamic(originalEntries, fakeCount, fakeDelta) {
-    const data = new Uint8Array(4 + 4 + (originalEntries.length + 1) * 8);
+    const totalEntries = originalEntries.length + 1;
+    const data = new Uint8Array(4 + 4 + totalEntries * 8);
     const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    dv.setUint32(4, originalEntries.length + 1, false);
-    
-    let offset = 8;
-    for (const entry of originalEntries) {
-        dv.setUint32(offset, entry.count, false);
-        dv.setUint32(offset + 4, entry.delta, false);
-        offset += 8;
+    dv.setUint32(4, totalEntries, false);
+    let pos = 8;
+    for (const e of originalEntries) {
+        dv.setUint32(pos, e.count, false);
+        dv.setUint32(pos + 4, e.delta, false);
+        pos += 8;
     }
-    dv.setUint32(offset, fakeCount, false);
-    dv.setUint32(offset + 4, fakeDelta, false);
-    
+    dv.setUint32(pos, fakeCount, false);
+    dv.setUint32(pos + 4, fakeDelta, false);
     return makeBox('stts', data);
+}
+
+function buildCttsDynamic(originalEntries, fakeCount, fakeOffset) {
+    const totalEntries = originalEntries.length + 1;
+    const data = new Uint8Array(4 + 4 + totalEntries * 8); // ver/flags + count + entries
+    const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    dv.setUint32(4, totalEntries, false);
+    let pos = 8;
+    for (const e of originalEntries) {
+        dv.setUint32(pos, e.count, false);
+        dv.setUint32(pos + 4, e.offset, false);
+        pos += 8;
+    }
+    dv.setUint32(pos, fakeCount, false);
+    dv.setUint32(pos + 4, fakeOffset, false);
+    return makeBox('ctts', data);
 }
 
 function buildStszDynamic(originalSizes, fakeCount, fakeSize) {
@@ -782,6 +777,7 @@ function patchMp4V2(arrayBuffer) {
         if (!videoTrak) throw new Error('video trak not found');
 
         const stts = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stts']);
+        const ctts = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'ctts']);
         const stsz = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stsz']);
         const stsc = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stsc']);
         const videoStco = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stco']);
@@ -841,6 +837,10 @@ function patchMp4V2(arrayBuffer) {
         fixedReplacements.set(stts, newStts);
         fixedReplacements.set(stsz, newStsz);
         fixedReplacements.set(stsc, newStsc);
+        if (ctts) {
+            const cttsData = parseCtts(u8, ctts);
+            fixedReplacements.set(ctts, buildCttsDynamic(cttsData, v2FakeSampleCount, 0));
+        }
 
         const preservedBoxes = [];
         for (const box of topLevel) {
@@ -991,15 +991,17 @@ function patchMp4Dimensions(arrayBuffer, newWidth = 720, newHeight = 1280) {
         let targetHeight = newHeight;
         
         if (oldWidth > oldHeight) {
-            // Landscape video: target 1280x720 (1280 wide, 720 high)
-            targetWidth = 1280;
+            // Landscape video: target 720 height, scale width proportionally
             targetHeight = 720;
+            targetWidth = Math.round(oldWidth * (720 / oldHeight));
+            if (targetWidth % 2 !== 0) targetWidth += 1;
         } else if (oldWidth < oldHeight) {
-            // Portrait video: target 720x1280 (720 wide, 1280 high)
+            // Portrait video: target 720 width, scale height proportionally
             targetWidth = 720;
-            targetHeight = 1280;
+            targetHeight = Math.round(oldHeight * (720 / oldWidth));
+            if (targetHeight % 2 !== 0) targetHeight += 1;
         } else {
-            // Square video: target 720x720 (720 wide, 720 high)
+            // Square video
             targetWidth = 720;
             targetHeight = 720;
         }
@@ -1115,6 +1117,7 @@ function patchMp4V3(arrayBuffer) {
 
         const mdhd = findDescendant(videoTrak, ['mdia', 'mdhd']);
         const stts = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stts']);
+        const ctts = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'ctts']);
         const stsz = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stsz']);
         const stsc = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stsc']);
         const videoStco = findDescendant(videoTrak, ['mdia', 'minf', 'stbl', 'stco']);
@@ -1199,6 +1202,10 @@ function patchMp4V3(arrayBuffer) {
         fixedReplacements.set(stts, newStts);
         fixedReplacements.set(stsz, newStsz);
         fixedReplacements.set(stsc, newStsc);
+        if (ctts) {
+            const cttsData = parseCtts(u8, ctts);
+            fixedReplacements.set(ctts, buildCttsDynamic(cttsData, FAKE_SAMPLE_COUNT, 0));
+        }
         if (existingEdts) {
             // Replace existing edts with our new one
             fixedReplacements.set(existingEdts, newEdtsBox);
