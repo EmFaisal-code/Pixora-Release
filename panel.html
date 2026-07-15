@@ -592,56 +592,7 @@
             padding: 0;
         }
 
-        /* ── MASTER ON/OFF SWITCH ── */
-        .master-toggle-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid var(--border);
-            position: relative;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        body.light .master-toggle-row {
-            background: rgba(0, 0, 0, 0.02);
-        }
-        .master-toggle-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .master-toggle-icon {
-            font-size: 18px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-        }
-        .master-toggle-text {
-            display: flex;
-            flex-direction: column;
-        }
-        .master-toggle-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: 0.3px;
-        }
-        .master-toggle-status {
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: color 0.3s;
-        }
-        body.extension-disabled .master-toggle-status {
-            color: var(--muted);
-        }
-        body.extension-disabled .app-container {
-            filter: grayscale(1) opacity(0.4);
-            pointer-events: none;
-        }
+
     </style>
 </head>
 <body class="theme-purple">
@@ -650,20 +601,7 @@
 <canvas id="dustCanvas"></canvas>
 <div class="bg-overlay"></div>
 
-<!-- MASTER ON/OFF SWITCH ROW -->
-<div id="masterToggleRow" class="master-toggle-row">
-    <div class="master-toggle-info">
-        <span class="master-toggle-icon">🛡️</span>
-        <div class="master-toggle-text">
-            <div class="master-toggle-title">Pixora Bypasser</div>
-            <div class="master-toggle-status" id="masterStatusText">Active</div>
-        </div>
-    </div>
-    <label class="toggle-switch master-switch">
-        <input type="checkbox" id="masterToggle" checked>
-        <span class="toggle-slider"></span>
-    </label>
-</div>
+
 
 <div class="app-container">
     <!-- FFmpeg WASM library (lokal, tidak perlu CDN) -->

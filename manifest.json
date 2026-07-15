@@ -67,7 +67,6 @@
             "<all_urls>"
          ],
          "resources": [
-            "js/inject.js",
             "js/engine.js",
             "assets/ffmpeg/ffmpeg-core.js",
             "assets/ffmpeg/ffmpeg-core.wasm",
