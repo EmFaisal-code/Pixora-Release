@@ -60,7 +60,7 @@
       "offscreen",
       "alarms"
    ],
-   "version": "3.0.8",
+   "version": "3.1.0",
    "web_accessible_resources": [
       {
          "matches": [
